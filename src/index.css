@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { @apply h-full; }
+  body {
+    @apply bg-base-100 text-base-content antialiased;
+  }
+}
+
+@layer components {
+  /* Flat, minimal cards */
+  .glass { @apply bg-base-100 border border-base-300 shadow-sm; }
+  .section-card { @apply glass rounded-xl p-6 md:p-8; }
+}
