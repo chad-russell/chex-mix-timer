@@ -117,7 +117,7 @@ export default function App() {
             ❄️
           </motion.span>
           <span className="text-sm font-medium text-green-600">
-            Happy Holidays and happy snacking!
+            Happy Snacking!
           </span>
           <motion.span
             animate={{ rotate: [0, -15, 15, 0] }}
