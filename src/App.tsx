@@ -6,14 +6,9 @@ import Recipe from "./components/Recipe";
 import useLocalStorage from "./hooks/useLocalStorage";
 
 type Tab = "timer" | "recipe";
-type Background = "default" | "blue" | "red";
 
 export default function App() {
   const [tab, setTab] = useLocalStorage<Tab>("ui_tab", "timer");
-  const [background, setBackground] = useLocalStorage<Background>(
-    "ui_background",
-    "default"
-  );
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -35,9 +30,7 @@ export default function App() {
   ];
 
   return (
-    <div
-      className={`min-h-screen flex flex-col relative overflow-hidden bg-stripes-red`}
-    >
+    <div className="min-h-screen flex flex-col bg-blue-50 relative overflow-hidden">
       {/* Snowfall effect */}
       <div className="snowfall"></div>
       <div className="snowfall"></div>
@@ -63,8 +56,8 @@ export default function App() {
               <span className="text-green-600">Chex Mix Timer</span>
             </motion.span>
           </div>
-          <nav className="flex-none flex items-center gap-4">
-            <div className="tabs tabs-boxed bg-white rounded-full p-1 shadow-inner border border-green-600">
+          <nav className="flex-none">
+            <div className="tabs tabs-boxed bg-white rounded-full p-1 shadow-inner border border-green-300">
               {tabs.map((t) => (
                 <button
                   key={t.key}
@@ -123,7 +116,7 @@ export default function App() {
           >
             ❄️
           </motion.span>
-          <span className="text-sm font-medium text-green-700">
+          <span className="text-sm font-medium text-green-600">
             Happy Holidays and happy snacking!
           </span>
           <motion.span
