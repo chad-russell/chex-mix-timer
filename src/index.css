@@ -148,4 +148,41 @@
   .section-card {
     @apply glass rounded-xl p-6 md:p-8;
   }
+
+  .timer-progress {
+    @apply radial-progress text-green-600 shadow-2xl border-4 border-green-200 bg-green-50;
+    --size: 18rem;
+    --thickness: 18px;
+  }
+
+  @screen md {
+    .timer-progress {
+      --size: 20rem;
+      --thickness: 20px;
+    }
+  }
+
+  .bg-stripes-blue {
+    background: repeating-linear-gradient(45deg,
+        #dbeafe,
+        #dbeafe 20px,
+        #1e3a8a 20px,
+        #1e3a8a 22px,
+        #bfdbfe 22px,
+        #bfdbfe 42px,
+        #1e3a8a 42px,
+        #1e3a8a 44px);
+  }
+
+  .bg-stripes-red {
+    background: repeating-linear-gradient(45deg,
+        #fee2e2,
+        #fee2e2 20px,
+        #991b1b 20px,
+        #991b1b 22px,
+        #fca5a5 22px,
+        #fca5a5 42px,
+        #991b1b 42px,
+        #991b1b 44px);
+  }
 }

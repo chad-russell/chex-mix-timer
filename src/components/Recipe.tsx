@@ -2,9 +2,9 @@ import { motion } from 'framer-motion'
 
 export default function Recipe() {
   return (
-    <div className="section-card bg-white border-2 border-green-300 rounded-3xl shadow-xl p-8">
+    <div className="section-card bg-white border-2 border-green-500 rounded-3xl shadow-xl p-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="text-3xl">🍪</div>
+        <div className="text-3xl">🥨</div>
         <h2 className="text-3xl font-bold text-green-600">
           Chex Mix Recipe
         </h2>
@@ -19,7 +19,7 @@ export default function Recipe() {
           <div className="badge bg-green-500 text-white border-none font-semibold px-4 py-2 rounded-full shadow-md">
             📝 Ingredients
           </div>
-          <ul className="space-y-3 bg-green-50 rounded-2xl p-6 border-2 border-green-300">
+          <ul className="space-y-3 bg-green-50 rounded-2xl p-6 border-2 border-green-500">
             <li className="flex items-start gap-3">
               <span className="text-red-500 mt-1">•</span>
               <span className="text-gray-700">9 cups assorted Chex cereals</span>
@@ -60,7 +60,7 @@ export default function Recipe() {
           <div className="badge bg-green-400 text-white border-none font-semibold px-4 py-2 rounded-full shadow-md">
             👩‍🍳 Directions
           </div>
-          <ol className="space-y-4 bg-green-50 rounded-2xl p-6 border-2 border-green-200">
+          <ol className="space-y-4 bg-green-50 rounded-2xl p-6 border-2 border-green-400">
             <li className="flex gap-3">
               <span className="flex-shrink-0 w-6 h-6 bg-green-400 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
               <span className="text-gray-700">Heat oven to 250°F (120°C).</span>
@@ -88,13 +88,13 @@ export default function Recipe() {
       <div className="divider my-8" />
 
       <div className="grid sm:grid-cols-2 gap-6">
-        <div className="glass rounded-2xl p-6 border-2 border-green-300 bg-green-50 shadow-sm">
+        <div className="glass rounded-2xl p-6 border-2 border-green-500 bg-green-50 shadow-sm">
           <div className="font-bold text-lg mb-2 inline-flex items-center gap-2 text-green-600">
             <span className="text-xl">🍽️</span> Serving
           </div>
           <div className="text-gray-700">Makes about 12 servings.</div>
         </div>
-        <div className="glass rounded-2xl p-6 border-2 border-green-200 bg-green-50 shadow-sm">
+        <div className="glass rounded-2xl p-6 border-2 border-green-400 bg-green-50 shadow-sm">
           <div className="font-bold text-lg mb-2 inline-flex items-center gap-2 text-green-600">
             <span className="text-xl">📋</span> Rounds
           </div>

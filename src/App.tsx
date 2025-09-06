@@ -6,9 +6,14 @@ import Recipe from "./components/Recipe";
 import useLocalStorage from "./hooks/useLocalStorage";
 
 type Tab = "timer" | "recipe";
+type Background = "default" | "blue" | "red";
 
 export default function App() {
   const [tab, setTab] = useLocalStorage<Tab>("ui_tab", "timer");
+  const [background, setBackground] = useLocalStorage<Background>(
+    "ui_background",
+    "default"
+  );
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -30,7 +35,9 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-blue-50 relative overflow-hidden">
+    <div
+      className={`min-h-screen flex flex-col relative overflow-hidden bg-stripes-red`}
+    >
       {/* Snowfall effect */}
       <div className="snowfall"></div>
       <div className="snowfall"></div>
@@ -38,7 +45,7 @@ export default function App() {
       <div className="snowfall"></div>
 
       <header className="sticky p-4 z-10">
-        <div className="navbar bg-white rounded-xl shadow-lg border-2 border-green-300">
+        <div className="navbar bg-white rounded-xl shadow-lg border-2 border-green-600">
           <div className="flex-1 items-center gap-2">
             <motion.span
               initial={{ opacity: 0, y: -8 }}
@@ -56,14 +63,14 @@ export default function App() {
               <span className="text-green-600">Chex Mix Timer</span>
             </motion.span>
           </div>
-          <nav className="flex-none">
-            <div className="tabs tabs-boxed bg-white rounded-full p-1 shadow-inner border border-green-300">
+          <nav className="flex-none flex items-center gap-4">
+            <div className="tabs tabs-boxed bg-white rounded-full p-1 shadow-inner border border-green-600">
               {tabs.map((t) => (
                 <button
                   key={t.key}
                   className={`tab flex items-center gap-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-400 ${tab === t.key
-                      ? "tab-active bg-green-500 text-white font-semibold"
-                      : ""
+                    ? "tab-active bg-green-500 text-white font-semibold"
+                    : ""
                     }`}
                   style={
                     tab !== t.key
@@ -105,7 +112,7 @@ export default function App() {
 
       <footer className="p-4 text-center">
         <motion.div
-          className="inline-flex items-center gap-2 bg-white rounded-full px-6 py-3 shadow-md border-2 border-green-300"
+          className="inline-flex items-center gap-2 bg-white rounded-full px-6 py-3 shadow-md border-2 border-green-600"
           animate={{ y: [0, -3, 0] }}
           transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
         >
@@ -116,7 +123,7 @@ export default function App() {
           >
             ❄️
           </motion.span>
-          <span className="text-sm font-medium text-green-600">
+          <span className="text-sm font-medium text-green-700">
             Happy Holidays and happy snacking!
           </span>
           <motion.span
