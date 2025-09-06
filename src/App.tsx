@@ -30,7 +30,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-blue-50 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-stripes-red relative overflow-hidden">
       {/* Snowfall effect */}
       <div className="snowfall"></div>
       <div className="snowfall"></div>
