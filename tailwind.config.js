@@ -8,18 +8,24 @@ export default {
   ],
   theme: {
     extend: {
-      backgroundImage: {
-        'chexmas':
-          'radial-gradient(ellipse at top, rgba(255,255,255,0.08), transparent 60%), radial-gradient(ellipse at bottom, rgba(255,255,255,0.06), transparent 60%), linear-gradient(120deg, #0b3d2e 0%, #0b3d2e 35%, #113b5b 100%)',
-      },
       keyframes: {
         twinkle: {
           '0%, 100%': { opacity: 0.4 },
           '50%': { opacity: 1 },
         },
+        'bounce-gentle': {
+          '0%, 100%': { 'transform': 'translateY(0)' },
+          '50%': { 'transform': 'translateY(-8px)' },
+        },
+        wiggle: {
+          '0%, 100%': { 'transform': 'rotate(-3deg)' },
+          '50%': { 'transform': 'rotate(3deg)' },
+        },
       },
       animation: {
         twinkle: 'twinkle 2.4s ease-in-out infinite',
+        'bounce-gentle': 'bounce-gentle 3s ease-in-out infinite',
+        wiggle: 'wiggle 2s ease-in-out infinite',
       },
     },
   },
@@ -27,24 +33,24 @@ export default {
   daisyui: {
     themes: [
       {
-        chexflat: {
-          // Flat minimal theme with pastel accents
-          primary: '#fda4af', // pastel red (rose-300)
-          'primary-content': '#1f2937',
-          secondary: '#86efac', // pastel green (emerald-300)
-          accent: '#fde68a', // soft gold (amber-200)
-          neutral: '#374151',
-          'base-100': '#fafafa', // near-white
-          'base-200': '#f4f4f5', // light gray
-          'base-300': '#e4e4e7', // gray border
-          info: '#93c5fd',
-          success: '#86efac',
-          warning: '#fde68a',
-          error: '#fca5a5',
+        christmas: {
+          // Winter Christmas theme with green primary and icy blue background
+          primary: '#16a34a', // Christmas green
+          'primary-content': '#ffffff',
+          'primary-focus': '#15803d', // darker green for focus states
+          secondary: '#22c55e', // lighter green  
+          'secondary-content': '#ffffff',
+          accent: '#fbbf24', // golden yellow
+          neutral: '#64748b',
+          'base-100': '#f0f9ff', // icy pale blue
+          'base-200': '#e0f2fe', // lighter icy blue
+          'base-300': '#bae6fd', // soft ice blue for borders
+          info: '#0ea5e9', // ice blue
+          success: '#16a34a', // Christmas green
+          warning: '#fbbf24', // golden yellow
+          error: '#dc2626', // Christmas red
         },
       },
-      'winter',
-      'cupcake',
     ],
     logs: false,
   },
