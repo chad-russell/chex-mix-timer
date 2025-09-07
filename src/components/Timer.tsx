@@ -128,7 +128,7 @@ function formatTime(ms: number) {
 
 export default function Timer() {
   const [totalRounds] = useState(4);
-  const [intervalMinutes] = useState(0.1); // useState(15);
+  const [intervalMinutes] = useState(15);
   const [soundEnabled] = useLocalStorage<boolean>("cfg_sound", true);
   const [notifyEnabled] = useLocalStorage<boolean>("cfg_notify", true);
 

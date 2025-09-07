@@ -6,7 +6,7 @@ export default function Recipe() {
       <div className="flex items-center gap-3 mb-6">
         <div className="text-3xl">🥨</div>
         <h2 className="text-3xl font-bold text-green-600">
-          Chex Mix Recipe
+          Traditional Chex Party Mix
         </h2>
       </div>
 
@@ -22,31 +22,27 @@ export default function Recipe() {
           <ul className="space-y-3 bg-green-50 rounded-2xl p-6 border-2 border-green-500">
             <li className="flex items-start gap-3">
               <span className="text-red-500 mt-1">•</span>
-              <span className="text-gray-700">9 cups assorted Chex cereals</span>
+              <span className="text-gray-700">1/2 cup margarine</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-red-500 mt-1">•</span>
-              <span className="text-gray-700">2 cups pretzels</span>
+              <span className="text-gray-700">1 1/4 teaspoons seasoned salt</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-red-500 mt-1">•</span>
-              <span className="text-gray-700">1 cup nuts (optional)</span>
+              <span className="text-gray-700">4 1/2 teaspoons Worcestershire sauce</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-red-500 mt-1">•</span>
-              <span className="text-gray-700">6 tbsp butter, melted</span>
+              <span className="text-gray-700">8 cups Chex cereal (Corn, Wheat, Rice)</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-red-500 mt-1">•</span>
-              <span className="text-gray-700">2 tbsp Worcestershire sauce</span>
+              <span className="text-gray-700">1 cup pretzels</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-red-500 mt-1">•</span>
-              <span className="text-gray-700">1½ tsp seasoned salt</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-red-500 mt-1">•</span>
-              <span className="text-gray-700">¾ tsp garlic powder, ½ tsp onion powder</span>
+              <span className="text-gray-700">1 cup salted peanuts</span>
             </li>
           </ul>
         </motion.div>
@@ -63,23 +59,23 @@ export default function Recipe() {
           <ol className="space-y-4 bg-green-50 rounded-2xl p-6 border-2 border-green-400">
             <li className="flex gap-3">
               <span className="flex-shrink-0 w-6 h-6 bg-green-400 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
-              <span className="text-gray-700">Heat oven to 250°F (120°C).</span>
+              <span className="text-gray-700">Preheat oven to 250°F. Melt margarine in a shallow roasting pan.</span>
             </li>
             <li className="flex gap-3">
               <span className="flex-shrink-0 w-6 h-6 bg-green-400 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
-              <span className="text-gray-700">Combine cereals, pretzels, and nuts in a large roasting pan.</span>
+              <span className="text-gray-700">Stir in seasoned salt and Worcestershire sauce.</span>
             </li>
             <li className="flex gap-3">
               <span className="flex-shrink-0 w-6 h-6 bg-green-400 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
-              <span className="text-gray-700">Stir butter, Worcestershire, and seasonings; drizzle and toss to coat.</span>
+              <span className="text-gray-700">Add Chex, pretzels, and peanuts; mix until all pieces are coated.</span>
             </li>
             <li className="flex gap-3">
               <span className="flex-shrink-0 w-6 h-6 bg-green-400 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
-              <span className="text-gray-700">Bake, stirring every 15 minutes, for 1 hour or until crisp.</span>
+              <span className="text-gray-700">Heat in oven 1 hour, stirring every 15 minutes.</span>
             </li>
             <li className="flex gap-3">
               <span className="flex-shrink-0 w-6 h-6 bg-green-400 text-white rounded-full flex items-center justify-center text-xs font-bold">5</span>
-              <span className="text-gray-700">Cool completely before storing. Enjoy!</span>
+              <span className="text-gray-700">Spread on paper towels to cool. Store in freezer.</span>
             </li>
           </ol>
         </motion.div>
@@ -104,4 +100,3 @@ export default function Recipe() {
     </div>
   )
 }
-
