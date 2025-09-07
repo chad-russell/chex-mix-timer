@@ -19,6 +19,10 @@ let audioContext: AudioContext | null = null;
 let oscillator: OscillatorNode | null = null;
 let gainNode: GainNode | null = null;
 
+// HTML5 audio element for alarm sound effect (jingle bells)
+const ALARM_AUDIO_SRC = "/audio/stir-it-up.mp3";
+let sharedAlarmAudio: HTMLAudioElement | null = null;
+
 function startBeep(enabled: boolean) {
   if (!enabled) return;
   try {
@@ -63,6 +67,44 @@ function stopBeep() {
   }
 }
 
+function ensureAlarmAudio() {
+  if (!sharedAlarmAudio) {
+    const el = new Audio(ALARM_AUDIO_SRC);
+    el.loop = true;
+    el.preload = "auto";
+    el.crossOrigin = "anonymous";
+    el.volume = 0.9;
+    sharedAlarmAudio = el;
+  }
+  return sharedAlarmAudio;
+}
+
+async function startAlarmSound(enabled: boolean) {
+  if (!enabled) return;
+  try {
+    const el = ensureAlarmAudio();
+    // If the audio has not been user-unlocked yet, this play may be blocked.
+    // We attempt to play; if it fails, we fall back to the web-audio beep.
+    await el.play();
+  } catch (err) {
+    // Fallback to the oscillator beep if auto-play is blocked or asset missing.
+    startBeep(enabled);
+  }
+}
+
+function stopAlarmSound() {
+  try {
+    sharedAlarmAudio?.pause();
+    if (sharedAlarmAudio) {
+      sharedAlarmAudio.currentTime = 0;
+    }
+  } catch {
+    // no-op
+  }
+  // Also ensure any beep fallback is stopped
+  stopBeep();
+}
+
 function notify(enabled: boolean, title: string, body?: string) {
   if (!enabled) return;
   if (!("Notification" in window)) return;
@@ -86,7 +128,7 @@ function formatTime(ms: number) {
 
 export default function Timer() {
   const [totalRounds] = useState(4);
-  const [intervalMinutes] = useState(15);
+  const [intervalMinutes] = useState(0.1); // useState(15);
   const [soundEnabled] = useLocalStorage<boolean>("cfg_sound", true);
   const [notifyEnabled] = useLocalStorage<boolean>("cfg_notify", true);
 
@@ -128,7 +170,8 @@ export default function Timer() {
   useEffect(() => {
     if (!running || endTime === null) return;
     if (remaining <= 0) {
-      startBeep(soundEnabled);
+      // Prefer playing the alarm sound effect; fallback beeper is inside startAlarmSound
+      startAlarmSound(soundEnabled);
       try {
         navigator.vibrate?.(200);
       } catch {
@@ -146,12 +189,12 @@ export default function Timer() {
   useEffect(() => {
     // Stop beep if timer is no longer ended or if sound is disabled
     if (!timerEnded || alarmSilenced || !soundEnabled) {
-      stopBeep();
+      stopAlarmSound();
     }
   }, [timerEnded, alarmSilenced, soundEnabled]);
 
   function silenceAlarm() {
-    stopBeep();
+    stopAlarmSound();
     setAlarmSilenced(true);
   }
 
@@ -160,7 +203,23 @@ export default function Timer() {
     setEndTime(Date.now() + intervalMs);
     setRunning(true);
     setTimerEnded(false);
-    stopBeep();
+    stopAlarmSound();
+    // Best effort to unlock audio on first user interaction
+    try {
+      const el = ensureAlarmAudio();
+      // Temporarily mute to avoid audible blip during unlock
+      const prevMuted = el.muted;
+      el.muted = true;
+      el.play().then(() => {
+        el.pause();
+        el.currentTime = 0;
+        el.muted = prevMuted;
+      }).catch(() => {
+        el.muted = prevMuted;
+      });
+    } catch {
+      // ignore
+    }
   }
 
   function pauseTimer() {
@@ -168,7 +227,7 @@ export default function Timer() {
     const left = Math.max(0, endTime - Date.now());
     setEndTime(-left); // store remaining in endTime as negative to indicate paused snapshot
     setRunning(false);
-    stopBeep();
+    stopAlarmSound();
   }
 
   function resumeTimer() {
@@ -177,11 +236,26 @@ export default function Timer() {
     setEndTime(Date.now() + snapshot);
     setRunning(true);
     setTimerEnded(false);
-    stopBeep();
+    stopAlarmSound();
+    // Best effort to unlock audio on user interaction
+    try {
+      const el = ensureAlarmAudio();
+      const prevMuted = el.muted;
+      el.muted = true;
+      el.play().then(() => {
+        el.pause();
+        el.currentTime = 0;
+        el.muted = prevMuted;
+      }).catch(() => {
+        el.muted = prevMuted;
+      });
+    } catch {
+      // ignore
+    }
   }
 
   function startNextRound() {
-    stopBeep();
+    stopAlarmSound();
     setTimerEnded(false);
     setAlarmSilenced(false);
     if (currentRound < totalRounds) {
@@ -197,7 +271,7 @@ export default function Timer() {
   }
 
   function prevRound() {
-    stopBeep();
+    stopAlarmSound();
     setTimerEnded(false);
     setAlarmSilenced(false);
     setCurrentRound((r) => Math.max(1, r - 1));
@@ -206,7 +280,7 @@ export default function Timer() {
   }
 
   function nextRound() {
-    stopBeep();
+    stopAlarmSound();
     setTimerEnded(false);
     setAlarmSilenced(false);
     setCurrentRound((r) => Math.min(totalRounds, r + 1));
