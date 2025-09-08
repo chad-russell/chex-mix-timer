@@ -12,7 +12,7 @@ const REDIS_URL = process.env.REDIS_URL || "";
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "";
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "";
 const API_KEY = process.env.SCHEDULE_API_KEY || "";
-const STATIC_DIR = path.resolve(process.cwd(), "dist");
+// const STATIC_DIR = path.resolve(process.cwd(), "dist"); // Disabled for backend
 
 if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
   console.warn("VAPID keys not set; push scheduling will be disabled.");
