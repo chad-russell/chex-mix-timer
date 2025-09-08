@@ -49,8 +49,6 @@ export default function Settings() {
   }
 
   async function testPush() {
-    console.log("WTF!?!?!!?");
-
     if (!canPush) {
       console.log(
         "Push not supported in this browser/origin. Use a supported browser and ensure HTTPS.",
