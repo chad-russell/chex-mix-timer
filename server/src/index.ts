@@ -137,14 +137,15 @@ app.post("/api/cancel", requireAuth, async (req: Request, res: Response) => {
   res.json({ ok: true, jobId: id });
 });
 
-// Static files (frontend)
-app.use(
-  express.static(STATIC_DIR, { index: false, maxAge: "1y", immutable: true }),
-);
-// SPA fallback except for /api
+const STATIC_DIR = path.resolve(process.cwd(), "dist"); // Frontend dist path, but not used in backend
+
+// Static files (frontend) - disabled for separate backend container
+// app.use(express.static(STATIC_DIR, { index: false, maxAge: "1y", immutable: true }));
+
+// Non-API routes return 404 (frontend served separately)
 app.get("*", (req: Request, res: Response, next: NextFunction) => {
   if (req.path.startsWith("/api/")) return next();
-  res.sendFile(path.join(STATIC_DIR, "index.html"));
+  res.status(404).json({ error: 'Not Found' });
 });
 
 app.listen(PORT, "0.0.0.0", () => {
