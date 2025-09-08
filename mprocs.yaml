@@ -1,0 +1,25 @@
+# Multi-process dev runner for Chex Mix Timer
+# Requires: mprocs (https://github.com/pvolok/mprocs)
+# Usage: mprocs
+
+version: 1
+
+procs:
+  redis_forward:
+    cwd: .
+    cmd: ["kubectl", "port-forward", "svc/redis", "6379:6379", "-n", "redis"]
+
+  backend:
+    cwd: .
+    cmd: ["pnpm", "run", "server:dev"]
+    env:
+      # Update these with your local values
+      REDIS_URL: redis://localhost:6379
+      VAPID_PUBLIC_KEY: BGpviRcstRBqjCSjDX3rm4AhAzck48BL9EH0T8LhjPi2PuWG2An3p3DmZ2U3iKSl4UF_qX61qDTTdtUcobkwXwM
+      VAPID_PRIVATE_KEY: hDif0NHU_dobQjn4DaifUEEgJmgyU9A9ldXoQh-f59c
+      PORT: "8080"
+      # SCHEDULE_API_KEY: optional-secret
+
+  frontend:
+    cwd: .
+    cmd: ["pnpm", "dev", "--host", "0.0.0.0", "--port", "3000"]

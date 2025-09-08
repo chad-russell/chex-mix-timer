@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Timer as TimerIcon, BookOpenText } from "lucide-react";
+import { Timer as TimerIcon, BookOpenText, Settings as SettingsIcon } from "lucide-react";
 import Timer from "./components/Timer";
 import Recipe from "./components/Recipe";
+import Settings from "./components/Settings";
 import useLocalStorage from "./hooks/useLocalStorage";
 
-type Tab = "timer" | "recipe";
+type Tab = "timer" | "recipe" | "settings";
 
 export default function App() {
   const [tab, setTab] = useLocalStorage<Tab>("ui_tab", "timer");
@@ -41,6 +42,11 @@ export default function App() {
       key: "recipe",
       label: "Recipe",
       icon: <BookOpenText size={18} className="text-current" />,
+    },
+    {
+      key: "settings",
+      label: "Settings",
+      icon: <SettingsIcon size={18} className="text-current" />,
     },
   ];
 
@@ -113,6 +119,7 @@ export default function App() {
             >
               {tab === "timer" && <Timer />}
               {tab === "recipe" && <Recipe />}
+              {tab === "settings" && <Settings />}
             </motion.div>
           )}
         </AnimatePresence>

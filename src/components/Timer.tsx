@@ -3,6 +3,11 @@ import { motion } from "framer-motion";
 import { Play, Pause, StepForward, StepBack, Bell } from "lucide-react";
 import useLocalStorage from "../hooks/useLocalStorage";
 import useDisplayMode from "../hooks/useDisplayMode";
+import {
+  ensurePushSubscription,
+  scheduleNext,
+  cancelScheduled,
+} from "../lib/push";
 
 // Type definition for the WakeLockSentinel
 interface WakeLockSentinel extends EventTarget {
@@ -337,6 +342,9 @@ export default function Timer() {
     Notification.requestPermission().then((permission) => {
       setNotificationPermission(permission);
       setNotifyEnabled(permission === "granted");
+      if (permission === "granted") {
+        ensurePushSubscription().catch(() => {});
+      }
     });
   }
 
@@ -347,6 +355,12 @@ export default function Timer() {
     setTimerEnded(false);
     stopAlarmSound();
     acquireWakeLock();
+    if (notifyEnabled) {
+      const at = Date.now() + intervalMs;
+      scheduleNext(at, "Time to mix!", `Round ${currentRound} finished`).catch(
+        () => {},
+      );
+    }
     try {
       const el = ensureAlarmAudio();
       const prevMuted = el.muted;
@@ -370,6 +384,7 @@ export default function Timer() {
     setRunning(false);
     stopAlarmSound();
     releaseWakeLock();
+    cancelScheduled().catch(() => {});
   }
 
   function resumeTimer() {
@@ -380,6 +395,12 @@ export default function Timer() {
     setTimerEnded(false);
     stopAlarmSound();
     acquireWakeLock();
+    if (notifyEnabled) {
+      const at = Date.now() + snapshot;
+      scheduleNext(at, "Time to mix!", `Round ${currentRound} finished`).catch(
+        () => {},
+      );
+    }
     try {
       const el = ensureAlarmAudio();
       const prevMuted = el.muted;
@@ -405,11 +426,20 @@ export default function Timer() {
       setEndTime(Date.now() + intervalMs);
       setRunning(true);
       acquireWakeLock();
+      if (notifyEnabled) {
+        const at = Date.now() + intervalMs;
+        scheduleNext(
+          at,
+          "Time to mix!",
+          `Round ${currentRound + 1} finished`,
+        ).catch(() => {});
+      }
     } else {
       setRunning(false);
       setEndTime(null);
       setCurrentRound(1);
       releaseWakeLock();
+      cancelScheduled().catch(() => {});
     }
   }
 
@@ -421,6 +451,7 @@ export default function Timer() {
     setEndTime(null);
     setRunning(false);
     releaseWakeLock();
+    cancelScheduled().catch(() => {});
   }
 
   function nextRound() {
@@ -431,6 +462,7 @@ export default function Timer() {
     setEndTime(null);
     setRunning(false);
     releaseWakeLock();
+    cancelScheduled().catch(() => {});
   }
 
   const isPausedSnapshot = !running && (endTime ?? 0) < 0;
@@ -454,7 +486,7 @@ export default function Timer() {
               className="btn btn-primary bg-green-500 border-2 border-green-600 hover:bg-green-600 text-white rounded-xl shadow-lg font-semibold focus:outline-none focus:ring-2 focus:ring-green-400 btn-lg text-2xl"
               onClick={silenceAlarm}
             >
-              Silence Alarm
+              Stop Playing
             </button>
           ) : (
             <button
@@ -466,7 +498,7 @@ export default function Timer() {
                 });
               }}
             >
-              Play Alarm
+              Play Song
             </button>
           )}
           {!isAudioPlaying && (
@@ -624,6 +656,29 @@ export default function Timer() {
           )}
         </div>
       </div>
+      {notificationPermission !== "granted" && (
+        <div className="mt-6">
+          {isIOS && !isStandalone ? (
+            <div className="p-3 bg-yellow-50 border-2 border-yellow-500 rounded-xl text-yellow-800 text-sm">
+              <div className="font-semibold mb-1">
+                Want alerts with sound on iPhone?
+              </div>
+              <div>
+                Add this app to your Home Screen first (Share → Add to Home
+                Screen), then open it from there and enable notifications.
+              </div>
+            </div>
+          ) : (
+            <button
+              className="btn btn-outline border-2 border-yellow-500 hover:bg-yellow-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 text-yellow-700 w-full"
+              onClick={requestNotificationPermission}
+            >
+              <Bell className="inline mr-2" size={18} />
+              Enable Notifications
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

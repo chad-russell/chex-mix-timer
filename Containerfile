@@ -1,5 +1,5 @@
-# Stage 1: Build the React application
-FROM node:20-alpine AS builder
+## Stage 1: Build frontend and server
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -12,20 +12,27 @@ RUN npm install
 # Copy the rest of the application source code
 COPY . .
 
-# Build the application
+## Build frontend
 RUN npm run build
+## Build server (standalone tsconfig)
+RUN npx tsc -p server/tsconfig.json
 
-# Stage 2: Serve the application with Nginx
-FROM nginx:1.25-alpine
+## Stage 2: Run with Node (serves static + API)
+FROM node:24-alpine
 
-# Copy the built application from the builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Copy the Nginx configuration
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+# Copy node_modules to run web server
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/package*.json /app/
 
-# Expose port 8080
+# App assets
+COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/server/dist /app/server/dist
+
+ENV NODE_ENV=production
+ENV PORT=8080
+
 EXPOSE 8080
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "server/dist/index.js"]
