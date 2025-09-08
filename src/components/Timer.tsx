@@ -191,8 +191,6 @@ function stopAlarmSound() {
   stopBeep();
 }
 
-
-
 function formatTime(ms: number) {
   const total = Math.max(0, Math.ceil(ms / 1000));
   const m = Math.floor(total / 60)
@@ -205,7 +203,7 @@ function formatTime(ms: number) {
 export default function Timer() {
   const { isStandalone, isIOS } = useDisplayMode();
   const [totalRounds] = useState(4);
-  const [intervalMinutes] = useState(0.2);
+  const [intervalMinutes] = useState(15);
   const [soundEnabled] = useLocalStorage<boolean>("cfg_sound", true);
   const [notifyEnabled, setNotifyEnabled] = useLocalStorage<boolean>(
     "cfg_notify",
@@ -298,7 +296,6 @@ export default function Timer() {
   useEffect(() => {
     if (!running || endTime === null) return;
     if (remaining <= 0) {
-
       setCelebrate(true);
       setTimeout(() => setCelebrate(false), 1200);
       setRunning(false);
