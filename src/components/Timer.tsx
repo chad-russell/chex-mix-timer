@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Play, Pause, StepForward, StepBack } from "lucide-react";
+import { Play, Pause, StepForward, StepBack, Bell } from "lucide-react";
 import useLocalStorage from "../hooks/useLocalStorage";
+import useDisplayMode from "../hooks/useDisplayMode";
+
+// Type definition for the WakeLockSentinel
+interface WakeLockSentinel extends EventTarget {
+  release(): Promise<void>;
+  readonly type: "screen";
+}
 
 function useInterval(callback: () => void, delay: number | null) {
   const savedCallback = useRef(callback);
@@ -31,8 +38,7 @@ function startBeep(enabled: boolean) {
     }
 
     audioContext = new (window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext })
-        .webkitAudioContext)();
+      (window as any).webkitAudioContext)();
     oscillator = audioContext.createOscillator();
     gainNode = audioContext.createGain();
 
@@ -41,7 +47,10 @@ function startBeep(enabled: boolean) {
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
     gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.4, audioContext.currentTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.4,
+      audioContext.currentTime + 0.01,
+    );
     oscillator.start();
   } catch (e) {
     console.error("Error starting beep:", e);
@@ -52,7 +61,10 @@ function startBeep(enabled: boolean) {
 function stopBeep() {
   if (oscillator) {
     try {
-      gainNode?.gain.exponentialRampToValueAtTime(0.0001, audioContext!.currentTime + 0.2);
+      gainNode?.gain.exponentialRampToValueAtTime(
+        0.0001,
+        audioContext!.currentTime + 0.2,
+      );
       oscillator.stop(audioContext!.currentTime + 0.22);
       oscillator.disconnect();
       gainNode?.disconnect();
@@ -79,16 +91,80 @@ function ensureAlarmAudio() {
   return sharedAlarmAudio;
 }
 
-async function startAlarmSound(enabled: boolean) {
-  if (!enabled) return;
+function waitForPlaying(
+  el: HTMLAudioElement,
+  timeoutMs = 1200,
+): Promise<boolean> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const onPlaying = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(true);
+    };
+    const onTimeUpdate = () => {
+      if (settled) return;
+      if (el.currentTime > 0 && !el.paused) {
+        settled = true;
+        cleanup();
+        resolve(true);
+      }
+    };
+    const onError = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(false);
+    };
+    const cleanup = () => {
+      el.removeEventListener("playing", onPlaying);
+      el.removeEventListener("timeupdate", onTimeUpdate);
+      el.removeEventListener("error", onError);
+    };
+    el.addEventListener("playing", onPlaying, { once: true });
+    el.addEventListener("timeupdate", onTimeUpdate);
+    el.addEventListener("error", onError, { once: true });
+    setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(!el.paused && el.currentTime > 0);
+    }, timeoutMs);
+  });
+}
+
+async function startAlarmSound(enabled: boolean): Promise<boolean> {
+  if (!enabled) return false;
   try {
     const el = ensureAlarmAudio();
-    // If the audio has not been user-unlocked yet, this play may be blocked.
-    // We attempt to play; if it fails, we fall back to the web-audio beep.
-    await el.play();
-  } catch (err) {
-    // Fallback to the oscillator beep if auto-play is blocked or asset missing.
+    // ensure volume
+    el.volume = 0.9;
+    try {
+      await el.play();
+    } catch (err) {
+      // Autoplay likely blocked
+      return false;
+    }
+    const ok = await waitForPlaying(el);
+    if (!ok) return false;
+    if ("mediaSession" in navigator) {
+      try {
+        // @ts-ignore - MediaSession may not be fully typed in TS lib
+        navigator.mediaSession.metadata = new window.MediaMetadata({
+          title: "Chex Mix Timer",
+          artist: "Timer",
+          album: "Chex Mix",
+        });
+        // @ts-ignore
+        navigator.mediaSession.playbackState = "playing";
+      } catch {}
+    }
+    return true;
+  } catch {
+    // Fallback to WebAudio beep if possible
     startBeep(enabled);
+    return false;
   }
 }
 
@@ -101,18 +177,22 @@ function stopAlarmSound() {
   } catch {
     // no-op
   }
-  // Also ensure any beep fallback is stopped
+  if ("mediaSession" in navigator) {
+    try {
+      // @ts-ignore
+      navigator.mediaSession.playbackState = "none";
+    } catch {}
+  }
   stopBeep();
 }
 
 function notify(enabled: boolean, title: string, body?: string) {
   if (!enabled) return;
-  if (!("Notification" in window)) return;
-  if (Notification.permission === "granted") {
-    new Notification(title, { body });
-  } else if (Notification.permission !== "denied") {
-    Notification.requestPermission().then((p) => {
-      if (p === "granted") new Notification(title, { body });
+  if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: "show-notification",
+      title,
+      body,
     });
   }
 }
@@ -127,10 +207,17 @@ function formatTime(ms: number) {
 }
 
 export default function Timer() {
+  const { isStandalone, isIOS } = useDisplayMode();
   const [totalRounds] = useState(4);
-  const [intervalMinutes] = useState(15);
+  const [intervalMinutes] = useState(0.2);
   const [soundEnabled] = useLocalStorage<boolean>("cfg_sound", true);
-  const [notifyEnabled] = useLocalStorage<boolean>("cfg_notify", true);
+  const [notifyEnabled, setNotifyEnabled] = useLocalStorage<boolean>(
+    "cfg_notify",
+    true,
+  );
+  const [notificationPermission, setNotificationPermission] = useState(
+    "Notification" in window ? Notification.permission : "default",
+  );
 
   const [currentRound, setCurrentRound] = useLocalStorage<number>(
     "state_currentRound",
@@ -154,6 +241,51 @@ export default function Timer() {
     "state_alarmSilenced",
     false,
   );
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+
+  const wakeLock = useRef<WakeLockSentinel | null>(null);
+
+  const acquireWakeLock = async () => {
+    if ("wakeLock" in navigator) {
+      try {
+        wakeLock.current = await (navigator.wakeLock as any).request("screen");
+      } catch (err: any) {
+        console.error(`Wake Lock request failed: ${err.name}, ${err.message}`);
+      }
+    }
+  };
+
+  const releaseWakeLock = async () => {
+    if (wakeLock.current) {
+      try {
+        await wakeLock.current.release();
+        wakeLock.current = null;
+      } catch (err: any) {
+        console.error(`Wake Lock release failed: ${err.name}, ${err.message}`);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        if (wakeLock.current !== null) {
+          acquireWakeLock();
+        }
+        if (timerEnded && !alarmSilenced) {
+          // Try to restart audio when app returns to foreground
+          startAlarmSound(soundEnabled).then((ok) => {
+            if (ok) setIsAudioPlaying(true);
+          });
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      releaseWakeLock();
+    };
+  }, [timerEnded, alarmSilenced, soundEnabled]);
 
   const intervalMs = intervalMinutes * 60 * 1000;
   const remaining = endTime ? endTime - now : intervalMs;
@@ -170,32 +302,42 @@ export default function Timer() {
   useEffect(() => {
     if (!running || endTime === null) return;
     if (remaining <= 0) {
-      // Prefer playing the alarm sound effect; fallback beeper is inside startAlarmSound
-      startAlarmSound(soundEnabled);
-      try {
-        navigator.vibrate?.(200);
-      } catch {
-        // Silently ignore audio errors
-      }
       notify(notifyEnabled, "Time to mix!", `Round ${currentRound} finished`);
       setCelebrate(true);
       setTimeout(() => setCelebrate(false), 1200);
-      setRunning(false); // Stop the timer
-      setTimerEnded(true); // Indicate timer has ended
-      setAlarmSilenced(false); // Alarm is not silenced yet
+      setRunning(false);
+      setTimerEnded(true);
+      setAlarmSilenced(false);
+      releaseWakeLock();
     }
   }, [running, endTime, remaining, soundEnabled, notifyEnabled, currentRound]);
 
   useEffect(() => {
-    // Stop beep if timer is no longer ended or if sound is disabled
-    if (!timerEnded || alarmSilenced || !soundEnabled) {
+    if (timerEnded && !alarmSilenced && soundEnabled) {
+      const playSound = async () => {
+        const ok = await startAlarmSound(soundEnabled);
+        setIsAudioPlaying(ok);
+        if (ok) navigator.vibrate?.([200, 100, 200]);
+      };
+      playSound();
+    } else {
       stopAlarmSound();
+      setIsAudioPlaying(false);
     }
   }, [timerEnded, alarmSilenced, soundEnabled]);
 
   function silenceAlarm() {
     stopAlarmSound();
     setAlarmSilenced(true);
+    setIsAudioPlaying(false);
+  }
+
+  function requestNotificationPermission() {
+    if (!("Notification" in window)) return;
+    Notification.requestPermission().then((permission) => {
+      setNotificationPermission(permission);
+      setNotifyEnabled(permission === "granted");
+    });
   }
 
   function startTimer() {
@@ -204,30 +346,30 @@ export default function Timer() {
     setRunning(true);
     setTimerEnded(false);
     stopAlarmSound();
-    // Best effort to unlock audio on first user interaction
+    acquireWakeLock();
     try {
       const el = ensureAlarmAudio();
-      // Temporarily mute to avoid audible blip during unlock
       const prevMuted = el.muted;
       el.muted = true;
-      el.play().then(() => {
-        el.pause();
-        el.currentTime = 0;
-        el.muted = prevMuted;
-      }).catch(() => {
-        el.muted = prevMuted;
-      });
-    } catch {
-      // ignore
-    }
+      el.play()
+        .then(() => {
+          el.pause();
+          el.currentTime = 0;
+          el.muted = prevMuted;
+        })
+        .catch(() => {
+          el.muted = prevMuted;
+        });
+    } catch {}
   }
 
   function pauseTimer() {
     if (!running || endTime === null) return;
     const left = Math.max(0, endTime - Date.now());
-    setEndTime(-left); // store remaining in endTime as negative to indicate paused snapshot
+    setEndTime(-left);
     setRunning(false);
     stopAlarmSound();
+    releaseWakeLock();
   }
 
   function resumeTimer() {
@@ -237,21 +379,21 @@ export default function Timer() {
     setRunning(true);
     setTimerEnded(false);
     stopAlarmSound();
-    // Best effort to unlock audio on user interaction
+    acquireWakeLock();
     try {
       const el = ensureAlarmAudio();
       const prevMuted = el.muted;
       el.muted = true;
-      el.play().then(() => {
-        el.pause();
-        el.currentTime = 0;
-        el.muted = prevMuted;
-      }).catch(() => {
-        el.muted = prevMuted;
-      });
-    } catch {
-      // ignore
-    }
+      el.play()
+        .then(() => {
+          el.pause();
+          el.currentTime = 0;
+          el.muted = prevMuted;
+        })
+        .catch(() => {
+          el.muted = prevMuted;
+        });
+    } catch {}
   }
 
   function startNextRound() {
@@ -262,11 +404,12 @@ export default function Timer() {
       setCurrentRound(currentRound + 1);
       setEndTime(Date.now() + intervalMs);
       setRunning(true);
+      acquireWakeLock();
     } else {
-      // All rounds completed
       setRunning(false);
       setEndTime(null);
-      setCurrentRound(1); // Reset for next use
+      setCurrentRound(1);
+      releaseWakeLock();
     }
   }
 
@@ -277,6 +420,7 @@ export default function Timer() {
     setCurrentRound((r) => Math.max(1, r - 1));
     setEndTime(null);
     setRunning(false);
+    releaseWakeLock();
   }
 
   function nextRound() {
@@ -286,6 +430,7 @@ export default function Timer() {
     setCurrentRound((r) => Math.min(totalRounds, r + 1));
     setEndTime(null);
     setRunning(false);
+    releaseWakeLock();
   }
 
   const isPausedSnapshot = !running && (endTime ?? 0) < 0;
@@ -300,16 +445,36 @@ export default function Timer() {
   if (timerEnded) {
     if (!alarmSilenced) {
       return (
-        <div className="section-card bg-white border-2 border-yellow-500 rounded-3xl shadow-xl p-8 md:p-12 min-w-[700px] flex flex-col items-center justify-center">
+        <div className="section-card bg-white border-2 border-yellow-500 rounded-3xl shadow-xl p-6 md:p-10 w-full max-w-sm sm:max-w-md md:max-w-xl flex flex-col items-center justify-center">
           <h2 className="text-5xl font-bold text-green-800 mb-6">
             Round {currentRound} Over!
           </h2>
-          <button
-            className="btn btn-primary bg-green-500 border-2 border-green-600 hover:bg-green-600 text-white rounded-xl shadow-lg font-semibold focus:outline-none focus:ring-2 focus:ring-green-400 btn-lg text-2xl"
-            onClick={silenceAlarm}
-          >
-            Silence Alarm
-          </button>
+          {isAudioPlaying ? (
+            <button
+              className="btn btn-primary bg-green-500 border-2 border-green-600 hover:bg-green-600 text-white rounded-xl shadow-lg font-semibold focus:outline-none focus:ring-2 focus:ring-green-400 btn-lg text-2xl"
+              onClick={silenceAlarm}
+            >
+              Silence Alarm
+            </button>
+          ) : (
+            <button
+              className="btn btn-primary bg-yellow-500 border-2 border-yellow-600 hover:bg-yellow-600 text-white rounded-xl shadow-lg font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400 btn-lg text-2xl"
+              onClick={() => {
+                startAlarmSound(soundEnabled).then((ok) => {
+                  setIsAudioPlaying(ok);
+                  if (ok) navigator.vibrate?.([200, 100, 200]);
+                });
+              }}
+            >
+              Play Alarm
+            </button>
+          )}
+          {!isAudioPlaying && (
+            <div className="mt-4 text-yellow-800 bg-yellow-50 border-2 border-yellow-500 rounded-xl p-3 text-center">
+              If you don’t hear audio, tap “Play Alarm”, turn up the volume, and
+              ensure Silent Mode is off.
+            </div>
+          )}
         </div>
       );
     } else {
@@ -364,9 +529,9 @@ export default function Timer() {
               animate={
                 celebrate
                   ? {
-                    boxShadow:
-                      "0 0 0 8px rgba(22,163,74,0.3), 0 0 60px 12px rgba(22,163,74,0.2)",
-                  }
+                      boxShadow:
+                        "0 0 0 8px rgba(22,163,74,0.3), 0 0 60px 12px rgba(22,163,74,0.2)",
+                    }
                   : { boxShadow: "0 0 0 0 rgba(0,0,0,0)" }
               }
               transition={{ duration: 0.5 }}

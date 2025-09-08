@@ -16,6 +16,21 @@ export default function App() {
     setMounted(true);
   }, []);
 
+  const handleDebugClear = () => {
+    try {
+      localStorage.clear();
+    } catch {
+      // ignore
+    }
+    try {
+      navigator.vibrate?.(50);
+    } catch {
+      // ignore
+    }
+    // Reload to ensure all state resets to defaults
+    window.location.reload();
+  };
+
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     {
       key: "timer",
@@ -105,9 +120,19 @@ export default function App() {
 
       <footer className="p-4 text-center">
         <motion.div
-          className="inline-flex items-center gap-2 bg-white rounded-full px-6 py-3 shadow-md border-2 border-green-600"
+          className="inline-flex items-center gap-2 bg-white rounded-full px-6 py-3 shadow-md border-2 border-green-600 cursor-pointer select-none"
           animate={{ y: [0, -3, 0] }}
           transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+          onClick={handleDebugClear}
+          role="button"
+          tabIndex={0}
+          title="Tap to clear local data"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleDebugClear();
+            }
+          }}
         >
           <motion.span
             animate={{ rotate: [0, 15, -15, 0] }}
