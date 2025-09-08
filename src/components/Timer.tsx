@@ -191,16 +191,7 @@ function stopAlarmSound() {
   stopBeep();
 }
 
-function notify(enabled: boolean, title: string, body?: string) {
-  if (!enabled) return;
-  if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      type: "show-notification",
-      title,
-      body,
-    });
-  }
-}
+
 
 function formatTime(ms: number) {
   const total = Math.max(0, Math.ceil(ms / 1000));
@@ -307,7 +298,7 @@ export default function Timer() {
   useEffect(() => {
     if (!running || endTime === null) return;
     if (remaining <= 0) {
-      notify(notifyEnabled, "Time to mix!", `Round ${currentRound} finished`);
+
       setCelebrate(true);
       setTimeout(() => setCelebrate(false), 1200);
       setRunning(false);
