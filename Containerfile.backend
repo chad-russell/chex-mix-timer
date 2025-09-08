@@ -2,22 +2,21 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy root package files
 COPY package*.json ./
 COPY package-lock.json ./
 RUN npm ci
 
-# Copy source code
-COPY . .
+# Copy server source only
+COPY server/ ./server/
 
-# Build server only (no frontend build needed for backend)
+# Build server
 RUN npx tsc -p server/tsconfig.json
 
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy built server (no frontend dist)
+# Copy built server
 COPY --from=builder /app/server/dist ./server/dist
 
 # Copy package files for deps
