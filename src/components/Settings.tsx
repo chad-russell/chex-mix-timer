@@ -155,7 +155,26 @@ export default function Settings() {
           </>
         )}
 
-        {status && (
+        <button
+  className="btn btn-secondary btn-outline border-2 border-red-500 hover:bg-red-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 text-red-700 w-full mt-3"
+  onClick={() => {
+    try {
+      localStorage.clear();
+    } catch {
+      // ignore
+    }
+    try {
+      navigator.vibrate?.(50);
+    } catch {
+      // ignore
+    }
+    // Reload to ensure all state resets to defaults
+    window.location.reload();
+  }}
+>
+  Clear Local Storage
+</button>
+{status && (
           <div className="p-3 text-sm text-green-800 bg-green-50 border border-green-200 rounded-xl">
             {status}
           </div>

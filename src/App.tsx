@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Timer as TimerIcon, BookOpenText, Settings as SettingsIcon } from "lucide-react";
+import { Timer as TimerIcon, BookOpenText } from "lucide-react";
 import Timer from "./components/Timer";
 import Recipe from "./components/Recipe";
 import Settings from "./components/Settings";
@@ -17,20 +17,7 @@ export default function App() {
     setMounted(true);
   }, []);
 
-  const handleDebugClear = () => {
-    try {
-      localStorage.clear();
-    } catch {
-      // ignore
-    }
-    try {
-      navigator.vibrate?.(50);
-    } catch {
-      // ignore
-    }
-    // Reload to ensure all state resets to defaults
-    window.location.reload();
-  };
+
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     {
@@ -42,11 +29,6 @@ export default function App() {
       key: "recipe",
       label: "Recipe",
       icon: <BookOpenText size={18} className="text-current" />,
-    },
-    {
-      key: "settings",
-      label: "Settings",
-      icon: <SettingsIcon size={18} className="text-current" />,
     },
   ];
 
@@ -117,9 +99,10 @@ export default function App() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
             >
-              {tab === "timer" && <Timer />}
-              {tab === "recipe" && <Recipe />}
-              {tab === "settings" && <Settings />}
+{tab === "timer" && <Timer />}
+  {tab === "recipe" && <Recipe />}
+  {tab === "settings" && <Settings />}
+
             </motion.div>
           )}
         </AnimatePresence>
@@ -130,14 +113,14 @@ export default function App() {
           className="inline-flex items-center gap-2 bg-white rounded-full px-6 py-3 shadow-md border-2 border-green-600 cursor-pointer select-none"
           animate={{ y: [0, -3, 0] }}
           transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-          onClick={handleDebugClear}
+          onClick={() => setTab("settings")}
           role="button"
           tabIndex={0}
-          title="Tap to clear local data"
+          title="Open Settings"
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              handleDebugClear();
+              setTab("settings");
             }
           }}
         >
