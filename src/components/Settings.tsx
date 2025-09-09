@@ -89,28 +89,32 @@ export default function Settings() {
       </motion.h2>
 
       <div className="space-y-3 text-sm">
-        <div className="p-3 rounded-xl border bg-green-50 border-green-200 text-black">
-          <div>
-            <span className="font-semibold">PWA installed:</span>{" "}
-            {isStandalone ? "Yes" : "No"}
-          </div>
-          <div>
-            <span className="font-semibold">Device:</span>{" "}
-            {isIOS ? "iOS" : "Other"}
-          </div>
-          <div>
-            <span className="font-semibold">Push capable:</span>{" "}
-            {canPush ? "Yes" : "No"}
-          </div>
-          <div>
-            <span className="font-semibold">Notification permission:</span>{" "}
-            {permission}
-          </div>
-          <div className="truncate">
-            <span className="font-semibold">Subscribed endpoint:</span>{" "}
-            {sub?.endpoint ? new URL(sub.endpoint).host + " …" : "None"}
-          </div>
-        </div>
+<div className="p-3 rounded-xl border bg-green-50 border-green-200 text-black">
+<div>
+<span className="font-semibold">PWA installed:</span>{" "}
+{isStandalone ? "Yes" : "No"}
+</div>
+<div>
+<span className="font-semibold">Device:</span>{" "}
+{isIOS ? "iOS" : "Other"}
+</div>
+<div>
+<span className="font-semibold">Push capable:</span>{" "}
+{canPush ? "Yes" : "No"}
+</div>
+<div>
+<span className="font-semibold">Notification permission:</span>{" "}
+{permission}
+</div>
+<div>
+<span className="font-semibold">App Version:</span>{" "}
+{__APP_VERSION__}
+</div>
+<div className="truncate">
+<span className="font-semibold">Subscribed endpoint:</span>{" "}
+{sub?.endpoint ? new URL(sub.endpoint).host + " …" : "None"}
+</div>
+</div>
 
         {!isStandalone && isIOS && (
           <div className="p-3 bg-yellow-50 border-2 border-yellow-500 rounded-xl text-yellow-800">
