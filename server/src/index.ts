@@ -19,7 +19,7 @@ if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
 }
 
 webPush.setVapidDetails(
-  "mailto:push@chexmix.local",
+  "mailto:chaddouglasrussell+chexmix@gmail.com",
   VAPID_PUBLIC_KEY,
   VAPID_PRIVATE_KEY,
 );
