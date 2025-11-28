@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Containerfile.backend
+    container_name: chex-mix-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - NODE_ENV=production
+      - REDIS_URL=${REDIS_URL:-}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - SCHEDULE_API_KEY=${SCHEDULE_API_KEY:-}
+    networks:
+      - chex-mix-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/vapidPublicKey"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Containerfile.frontend
+    container_name: chex-mix-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - chex-mix-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: chex-mix-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - chex-mix-network
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    profiles:
+      - with-redis
+
+networks:
+  chex-mix-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+
