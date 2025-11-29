@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import useDisplayMode from "../hooks/useDisplayMode";
+import useLocalStorage from "../hooks/useLocalStorage";
 import {
   ensurePushSubscription,
   getSavedSubscription,
@@ -19,6 +20,7 @@ export default function Settings() {
   );
   const [status, setStatus] = useState<string>("");
   const [sub, setSub] = useState(() => getSavedSubscription());
+  const [testMode, setTestMode] = useLocalStorage<boolean>("cfg_testMode", false);
 
   useEffect(() => {
     setPermission(
@@ -89,6 +91,23 @@ export default function Settings() {
       </motion.h2>
 
       <div className="space-y-3 text-sm">
+        <div className="p-4 rounded-xl border-2 bg-blue-50 border-blue-500">
+          <label className="flex items-center justify-between cursor-pointer">
+            <div>
+              <div className="font-semibold text-blue-800 text-base">Test Mode</div>
+              <div className="text-blue-700 text-xs mt-1">
+                Timer runs for 10 seconds instead of 15 minutes
+              </div>
+            </div>
+            <input
+              type="checkbox"
+              className="toggle toggle-primary border-2 border-blue-600 bg-blue-200"
+              checked={testMode}
+              onChange={(e) => setTestMode(e.target.checked)}
+            />
+          </label>
+        </div>
+
 <div className="p-3 rounded-xl border bg-green-50 border-green-200 text-black">
 <div>
 <span className="font-semibold">PWA installed:</span>{" "}

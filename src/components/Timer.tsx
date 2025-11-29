@@ -204,6 +204,7 @@ export default function Timer() {
   const { isStandalone, isIOS } = useDisplayMode();
   const [totalRounds] = useState(4);
   const [intervalMinutes] = useState(15);
+  const [testMode] = useLocalStorage<boolean>("cfg_testMode", false);
   const [soundEnabled] = useLocalStorage<boolean>("cfg_sound", true);
   const [notifyEnabled, setNotifyEnabled] = useLocalStorage<boolean>(
     "cfg_notify",
@@ -281,7 +282,7 @@ export default function Timer() {
     };
   }, [timerEnded, alarmSilenced, soundEnabled]);
 
-  const intervalMs = intervalMinutes * 60 * 1000;
+  const intervalMs = testMode ? 10 * 1000 : intervalMinutes * 60 * 1000;
   const remaining = endTime ? endTime - now : intervalMs;
   const percent = useMemo(() => {
     const elapsed = endTime
