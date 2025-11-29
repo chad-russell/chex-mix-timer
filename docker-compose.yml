@@ -30,7 +30,7 @@ services:
       dockerfile: Containerfile.frontend
     container_name: chex-mix-frontend
     ports:
-      - "80:80"
+      - "8732:80"
     depends_on:
       backend:
         condition: service_healthy
