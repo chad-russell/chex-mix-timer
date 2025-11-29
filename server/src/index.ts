@@ -16,13 +16,13 @@ const API_KEY = process.env.SCHEDULE_API_KEY || "";
 
 if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
   console.warn("VAPID keys not set; push scheduling will be disabled.");
+} else {
+  webPush.setVapidDetails(
+    "mailto:chaddouglasrussell+chexmix@gmail.com",
+    VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY,
+  );
 }
-
-webPush.setVapidDetails(
-  "mailto:chaddouglasrussell+chexmix@gmail.com",
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY,
-);
 
 const app = express();
 app.use(express.json());
